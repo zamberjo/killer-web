@@ -1,0 +1,164 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/* ==========================================================================
+   Killer — sistema de diseño
+   Oscuro, futurista y retro: terminal CRT de los 80 vista desde el futuro.
+   Los tokens se declaran aquí y Tailwind genera las utilidades (bg-void,
+   text-neon, border-line…). No se usan valores sueltos en los componentes.
+   ========================================================================== */
+
+@theme {
+	/* Superficies — casi negro azulado, no gris */
+	--color-void: #05060b;
+	--color-panel: #0c0f1a;
+	--color-line: #1b2133;
+
+	/* Acentos. El verde es el sistema (tú), el rojo es la amenaza (ellos). */
+	--color-neon: #35f5a0;
+	--color-blood: #ff2d55;
+	--color-amber: #ffc53d;
+
+	/* Texto */
+	--color-ink: #e6eaf5;
+	--color-muted: #8b93ad;
+
+	/* Monoespaciada de sistema: cero peticiones de red, cero CLS por fuentes */
+	--font-mono:
+		ui-monospace, 'JetBrains Mono', 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+	--font-sans: ui-sans-serif, system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+
+:root {
+	/* La página es oscura por diseño, no por preferencia: se lo decimos al
+	   navegador para que barras de scroll y controles nativos acompañen. */
+	color-scheme: dark;
+	accent-color: var(--color-neon);
+}
+
+html {
+	scroll-behavior: smooth;
+	/* Compensa el header pegajoso al saltar a un ancla */
+	scroll-padding-top: 5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+}
+
+body {
+	background-color: var(--color-void);
+	color: var(--color-ink);
+	font-family: var(--font-sans);
+	-webkit-font-smoothing: antialiased;
+	/* Evita el scroll horizontal que provocan los resplandores desbordados */
+	overflow-x: hidden;
+}
+
+::selection {
+	background-color: var(--color-neon);
+	color: var(--color-void);
+}
+
+/* Foco visible y coherente en toda la página. Nunca se elimina. */
+:where(a, button, summary, [tabindex]):focus-visible {
+	outline: 2px solid var(--color-neon);
+	outline-offset: 3px;
+	border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Utilidades de la identidad
+   -------------------------------------------------------------------------- */
+
+/* Rejilla de fondo: la retícula del mapa. */
+@utility bg-grid {
+	background-image:
+		linear-gradient(
+			to right,
+			color-mix(in oklab, var(--color-line) 60%, transparent) 1px,
+			transparent 1px
+		),
+		linear-gradient(
+			to bottom,
+			color-mix(in oklab, var(--color-line) 60%, transparent) 1px,
+			transparent 1px
+		);
+	background-size: 48px 48px;
+}
+
+/* Líneas de barrido del CRT. Decorativas: se aplican sobre un elemento
+   aria-hidden y no transportan información. */
+@utility scanlines {
+	background-image: repeating-linear-gradient(
+		to bottom,
+		rgb(255 255 255 / 0.028) 0px,
+		rgb(255 255 255 / 0.028) 1px,
+		transparent 1px,
+		transparent 3px
+	);
+}
+
+/* Resplandor de neón sobre texto. */
+@utility glow-neon {
+	text-shadow:
+		0 0 12px color-mix(in oklab, var(--color-neon) 55%, transparent),
+		0 0 40px color-mix(in oklab, var(--color-neon) 25%, transparent);
+}
+
+@utility glow-blood {
+	text-shadow:
+		0 0 12px color-mix(in oklab, var(--color-blood) 55%, transparent),
+		0 0 40px color-mix(in oklab, var(--color-blood) 25%, transparent);
+}
+
+/* Panel con borde fino y brillo interior, el "chasis" de la interfaz. */
+@utility panel {
+	background-color: color-mix(in oklab, var(--color-panel) 85%, transparent);
+	border: 1px solid var(--color-line);
+	box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+/* --------------------------------------------------------------------------
+   Revelado al hacer scroll
+   Mejora progresiva: sin soporte (Firefox) el contenido simplemente aparece
+   ya visible, porque el estado base NO es opacity:0. Nada queda oculto.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+	@supports ((animation-timeline: view()) and (animation-range: entry)) {
+		@keyframes reveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+		}
+
+		.reveal {
+			animation: reveal auto linear backwards;
+			/* animation-timeline va DESPUÉS del atajo `animation`, que si no lo
+			   resetearía. */
+			animation-timeline: view();
+			animation-range: entry 0% entry 60%;
+		}
+	}
+}
+
+/* Parpadeo del cursor de terminal. */
+@media (prefers-reduced-motion: no-preference) {
+	@keyframes caret {
+		50% {
+			opacity: 0;
+		}
+	}
+
+	.caret {
+		animation: caret 1.1s step-end infinite;
+	}
+}
